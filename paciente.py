@@ -10,7 +10,6 @@ Funcionalidades:
 Observações:
 - A validação de CPF não verifica autenticidade, apenas o formato
 - Todos dados coletados tem validação
----------------------------------------------------------
 """
 
 from utilidades import cabecalho, linha, pausar

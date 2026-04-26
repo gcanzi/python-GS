@@ -1,24 +1,25 @@
-# agendamento.py
-# Toda a lógica de marcação, cancelamento, reagendamento
-# e consulta de status das consultas.
+"""
+ Este arquivo contém toda a lógica de negócio para o gerenciamento de consultas, 
+ incluindo as funcionalidades de:
+    - Agendamento de novas consultas.
+    - Cancelamento de consultas ativas.
+    - Reagendamento de horários para consultas existentes.
+    - Consulta de status e histórico de agendamentos por paciente.
+ 
+ O módulo também implementa regras de validação, como o limite de agendamentos 
+ por CPF e a verificação de disponibilidade da agenda dos médicos.
+"""
 
-from utilidades import (
-    cabecalho, linha, pausar,
-    pedir_escolha_lista, confirmar_acao, pedir_opcao_menu
-)
+from utilidades import *
 
-# Dados fixos disponíveis no sistema
-MEDICOS      = ["Dr. Carlos", "Dra. Ana", "Dr. Pedro"]
+MEDICOS = ["Dr. Carlos", "Dra. Ana", "Dr. Pedro"]
 LOCALIZACOES = ["Unidade Centro", "Unidade Norte", "Unidade Sul"]
-TIPOS        = ["Clínica Geral", "Cardiologia", "Dermatologia"]
-HORARIOS     = ["08:00", "09:00", "10:00", "14:00", "15:00", "16:00"]
+TIPOS = ["Clínica Geral", "Cardiologia", "Dermatologia"]
+HORARIOS = ["08:00", "09:00", "10:00", "14:00", "15:00", "16:00"]
 
-# Limite máximo de agendamentos ativos por paciente
 LIMITE_AGENDAMENTOS = 3
 
-
-def _gerar_id(agendamentos: list) -> int:
-    # Gera um ID único incrementando o maior existente
+def gerar_id(agendamentos: list) -> int:
     if not agendamentos:
         return 1
     maior = 0
@@ -27,26 +28,20 @@ def _gerar_id(agendamentos: list) -> int:
             maior = a["id"]
     return maior + 1
 
-
-def _contar_ativos(agendamentos: list, cpf: str) -> int:
-    # Conta quantos agendamentos ativos o paciente tem
+def contar_ativos(agendamentos: list, cpf: str) -> int:
     total = 0
     for a in agendamentos:
         if a["cpf"] == cpf and a["status"] == "ativo":
             total += 1
     return total
 
-
-def _horario_ocupado(agendamentos: list, medico: str, horario: str) -> bool:
-    # Verifica se o médico já tem esse horário ocupado (ativo)
+def horario_ocupado(agendamentos: list, medico: str, horario: str) -> bool:
     for a in agendamentos:
         if a["medico"] == medico and a["horario"] == horario and a["status"] == "ativo":
             return True
     return False
 
-
-def _listar_consultas_paciente(agendamentos: list, cpf: str, apenas_ativos: bool = False) -> list:
-    # Retorna lista de consultas do paciente com filtro opcional
+def listar_consultas_paciente(agendamentos: list, cpf: str, apenas_ativos: bool = False) -> list:
     resultado = []
     for a in agendamentos:
         if a["cpf"] == cpf:
@@ -55,9 +50,7 @@ def _listar_consultas_paciente(agendamentos: list, cpf: str, apenas_ativos: bool
             resultado.append(a)
     return resultado
 
-
-def _exibir_consulta(agendamento: dict) -> None:
-    # Exibe os detalhes de um agendamento de forma formatada
+def exibir_consulta(agendamento: dict) -> None:
     print(f"  ID       : {agendamento['id']}")
     print(f"  Médico   : {agendamento['medico']}")
     print(f"  Local    : {agendamento['localizacao']}")
@@ -65,42 +58,35 @@ def _exibir_consulta(agendamento: dict) -> None:
     print(f"  Horário  : {agendamento['horario']}")
     print(f"  Status   : {agendamento['status'].upper()}")
 
-
 def agendar_consulta(agendamentos: list, paciente: dict) -> None:
-    # Fluxo completo de marcação de uma nova consulta
     cabecalho("Agendar Consulta")
 
     cpf = paciente["cpf"]
 
-    # Verificar limite de agendamentos ativos
-    if _contar_ativos(agendamentos, cpf) >= LIMITE_AGENDAMENTOS:
+    if contar_ativos(agendamentos, cpf) >= LIMITE_AGENDAMENTOS:
         print(f"\n  [!] Limite de {LIMITE_AGENDAMENTOS} agendamentos ativos atingido.")
         print("  Cancele uma consulta antes de agendar outra.")
         pausar()
         return
 
-    # Escolha do médico
-    idx_medico = pedir_escolha_lista(MEDICOS, "Escolha o Médico:")
-    if idx_medico == -1:
+    opcao_medico = pedir_escolha_lista(MEDICOS, "Escolha o Médico:")
+    if opcao_medico == -1:
         return
-    medico = MEDICOS[idx_medico]
+    medico = MEDICOS[opcao_medico]
 
-    # Escolha da localização
-    idx_local = pedir_escolha_lista(LOCALIZACOES, "Escolha a Localização:")
-    if idx_local == -1:
+    opcao_local = pedir_escolha_lista(LOCALIZACOES, "Escolha a Localização:")
+    if opcao_local == -1:
         return
-    localizacao = LOCALIZACOES[idx_local]
+    localizacao = LOCALIZACOES[opcao_local]
 
-    # Escolha do tipo de consulta
-    idx_tipo = pedir_escolha_lista(TIPOS, "Escolha o Tipo de Consulta:")
-    if idx_tipo == -1:
+    opcao_tipo = pedir_escolha_lista(TIPOS, "Escolha o Tipo de Consulta:")
+    if opcao_tipo == -1:
         return
-    tipo = TIPOS[idx_tipo]
+    tipo = TIPOS[opcao_tipo]
 
-    # Escolha do horário — mostra apenas os disponíveis para o médico
     horarios_livres = []
     for h in HORARIOS:
-        if not _horario_ocupado(agendamentos, medico, h):
+        if not horario_ocupado(agendamentos, medico, h):
             horarios_livres.append(h)
 
     if not horarios_livres:
@@ -108,12 +94,11 @@ def agendar_consulta(agendamentos: list, paciente: dict) -> None:
         pausar()
         return
 
-    idx_horario = pedir_escolha_lista(horarios_livres, "Escolha o Horário:")
-    if idx_horario == -1:
+    opcao_horario = pedir_escolha_lista(horarios_livres, "Escolha o Horário:")
+    if opcao_horario == -1:
         return
-    horario = horarios_livres[idx_horario]
+    horario = horarios_livres[opcao_horario]
 
-    # Resumo completo antes de confirmar
     print()
     cabecalho("Resumo do Agendamento")
     print(f"  Paciente : {paciente['nome']}")
@@ -128,9 +113,8 @@ def agendar_consulta(agendamentos: list, paciente: dict) -> None:
         pausar()
         return
 
-    # Cria o novo agendamento e adiciona à lista
     novo = {
-        "id": _gerar_id(agendamentos),
+        "id": gerar_id(agendamentos),
         "cpf": cpf,
         "medico": medico,
         "localizacao": localizacao,
@@ -143,10 +127,8 @@ def agendar_consulta(agendamentos: list, paciente: dict) -> None:
     print(f"\n  [✓] Consulta agendada com ID #{novo['id']}!")
     pausar()
 
-
-def _escolher_consulta_paciente(agendamentos: list, cpf: str, apenas_ativos: bool = False) -> dict:
-    # Mostra as consultas do paciente e devolve a escolhida (ou None)
-    consultas = _listar_consultas_paciente(agendamentos, cpf, apenas_ativos)
+def escolher_consulta_paciente(agendamentos: list, cpf: str, apenas_ativos: bool = False) -> dict:
+    consultas = listar_consultas_paciente(agendamentos, cpf, apenas_ativos)
 
     if not consultas:
         msg = "Nenhuma consulta ativa encontrada." if apenas_ativos else "Nenhuma consulta encontrada."
@@ -169,17 +151,15 @@ def _escolher_consulta_paciente(agendamentos: list, cpf: str, apenas_ativos: boo
             return consultas[int(escolha) - 1]
         print("  [!] Opção inválida.")
 
-
 def cancelar_consulta(agendamentos: list, cpf: str) -> None:
-    # Cancela uma consulta ativa do paciente
     cabecalho("Cancelar Consulta")
 
-    consulta = _escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
+    consulta = escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
     if not consulta:
         return
 
     print()
-    _exibir_consulta(consulta)
+    exibir_consulta(consulta)
     linha()
 
     if not confirmar_acao("Cancelar esta consulta?"):
@@ -187,7 +167,6 @@ def cancelar_consulta(agendamentos: list, cpf: str) -> None:
         pausar()
         return
 
-    # Atualiza o status na lista original (busca por ID)
     for a in agendamentos:
         if a["id"] == consulta["id"]:
             a["status"] = "cancelado"
@@ -196,12 +175,10 @@ def cancelar_consulta(agendamentos: list, cpf: str) -> None:
     print("  [✓] Consulta cancelada com sucesso.")
     pausar()
 
-
 def ver_status(agendamentos: list, cpf: str) -> None:
-    # Exibe todas as consultas do paciente com seus status
     cabecalho("Status das Consultas")
 
-    consultas = _listar_consultas_paciente(agendamentos, cpf)
+    consultas = listar_consultas_paciente(agendamentos, cpf)
     if not consultas:
         print("\n  [!] Nenhuma consulta encontrada.")
         pausar()
@@ -210,31 +187,27 @@ def ver_status(agendamentos: list, cpf: str) -> None:
     print()
     for c in consultas:
         linha()
-        _exibir_consulta(c)
+        exibir_consulta(c)
     linha()
     pausar()
 
-
 def reagendar_consulta(agendamentos: list, cpf: str) -> None:
-    # Permite trocar o horário de uma consulta ativa
     cabecalho("Reagendar Consulta")
 
-    consulta = _escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
+    consulta = escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
     if not consulta:
         return
 
     print()
-    _exibir_consulta(consulta)
+    exibir_consulta(consulta)
     linha()
 
-    # Mostra horários livres para o mesmo médico (exceto o atual)
     medico = consulta["medico"]
     horarios_livres = []
     for h in HORARIOS:
-        # O horário atual da consulta fica disponível para ela mesma
         if h == consulta["horario"]:
             continue
-        if not _horario_ocupado(agendamentos, medico, h):
+        if not horario_ocupado(agendamentos, medico, h):
             horarios_livres.append(h)
 
     if not horarios_livres:
@@ -242,17 +215,16 @@ def reagendar_consulta(agendamentos: list, cpf: str) -> None:
         pausar()
         return
 
-    idx_horario = pedir_escolha_lista(horarios_livres, "Escolha o novo horário:")
-    if idx_horario == -1:
+    opcao_horario = pedir_escolha_lista(horarios_livres, "Escolha o novo horário:")
+    if opcao_horario == -1:
         return
-    novo_horario = horarios_livres[idx_horario]
+    novo_horario = horarios_livres[opcao_horario]
 
     if not confirmar_acao(f"Reagendar para {novo_horario}?"):
         print("  [!] Operação cancelada.")
         pausar()
         return
 
-    # Atualiza o horário na lista original
     for a in agendamentos:
         if a["id"] == consulta["id"]:
             a["horario"] = novo_horario
@@ -263,7 +235,6 @@ def reagendar_consulta(agendamentos: list, cpf: str) -> None:
 
 
 def gerir_consultas(agendamentos: list, paciente: dict) -> None:
-    # Submenu de gestão de consultas
     cpf = paciente["cpf"]
 
     while True:
