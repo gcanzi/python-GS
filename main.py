@@ -16,7 +16,6 @@ from paciente   import registrar_paciente
 from agendamento import agendar_consulta, gerir_consultas
 from relatorios  import exibir_relatorios
 
-
 def exibir_menu(paciente_atual: dict) -> None:
     cabecalho("Menu Principal")
     print()
@@ -36,12 +35,10 @@ def exibir_menu(paciente_atual: dict) -> None:
     print("  5. Sair")
     linha()
 
-
 def opcoes_disponiveis(paciente_atual: dict) -> list:
     if paciente_atual is None:
         return ["1", "5"]
     return ["1", "2", "3", "4", "5"]
-
 
 def main() -> None:
 
@@ -91,7 +88,6 @@ def main() -> None:
             limpar_tela()
             print("\n  Obrigado por usar o CarePlus. Até logo!\n")
             break
-
 
 # Inicia o programa ao executar o arquivo main.py
 if __name__ == "__main__":
