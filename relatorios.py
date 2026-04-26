@@ -1,18 +1,20 @@
-# relatorios.py
-# Processa e exibe estatísticas sobre agendamentos e pacientes.
-# Toda a lógica usa apenas iterações em listas e dicionários.
+"""
+Este arquivo concentra a lógica analítica do sistema, transformando os dados 
+brutos de agendamentos e pacientes em informações úteis.
+Funcionalidades:
+    - Contagem total de consultas (ativas e canceladas).
+    - Identificação do médico com maior número de agendamentos.
+    - Agrupamento e contagem de consultas por especialidade/tipo.
+    - Listagem formatada de todos os pacientes cadastrados no sistema.
+    """
 
 from utilidades import cabecalho, linha, pausar
 from agendamento import TIPOS, MEDICOS
 
-
-def _total_agendamentos(agendamentos: list) -> int:
-    # Conta o total de agendamentos independentemente do status
+def total_agendamentos(agendamentos: list) -> int:
     return len(agendamentos)
 
-
-def _medico_mais_escolhido(agendamentos: list) -> tuple:
-    # Descobre qual médico tem mais agendamentos ativos
+def medico_mais_escolhido(agendamentos: list) -> tuple:
     contagem = {}
     for medico in MEDICOS:
         contagem[medico] = 0
@@ -21,7 +23,6 @@ def _medico_mais_escolhido(agendamentos: list) -> tuple:
         if a["status"] == "ativo":
             contagem[a["medico"]] = contagem.get(a["medico"], 0) + 1
 
-    # Encontra o médico com maior contagem
     mais_escolhido = None
     maior = -1
     for medico, total in contagem.items():
@@ -31,9 +32,7 @@ def _medico_mais_escolhido(agendamentos: list) -> tuple:
 
     return mais_escolhido, maior
 
-
-def _agrupar_por_tipo(agendamentos: list) -> dict:
-    # Agrupa consultas ativas por tipo e conta cada um
+def agrupar_por_tipo(agendamentos: list) -> dict:
     grupos = {}
     for tipo in TIPOS:
         grupos[tipo] = 0
@@ -44,14 +43,11 @@ def _agrupar_por_tipo(agendamentos: list) -> dict:
 
     return grupos
 
-
 def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
-    # Exibe todos os relatórios disponíveis numa única ecrã
     cabecalho("Relatórios e Informações")
     print()
 
-    # 1. Total de agendamentos
-    total = _total_agendamentos(agendamentos)
+    total = total_agendamentos(agendamentos)
     ativos = sum(1 for a in agendamentos if a["status"] == "ativo")
     cancelados = total - ativos
 
@@ -62,25 +58,22 @@ def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
     print(f"  Cancelados: {cancelados}")
     print()
 
-    # 2. Médico mais escolhido
     print("  [ Médico Mais Escolhido ]")
     linha()
-    medico, votos = _medico_mais_escolhido(agendamentos)
+    medico, votos = medico_mais_escolhido(agendamentos)
     if votos == 0:
         print("  Nenhum agendamento ativo registado.")
     else:
         print(f"  {medico} ({votos} consulta(s) ativa(s))")
     print()
 
-    # 3. Consultas agrupadas por tipo
     print("  [ Consultas por Tipo (ativas) ]")
     linha()
-    grupos = _agrupar_por_tipo(agendamentos)
+    grupos = agrupar_por_tipo(agendamentos)
     for tipo, quantidade in grupos.items():
         print(f"  {tipo:<18}: {quantidade}")
     print()
 
-    # 4. Listagem de pacientes registados
     print("  [ Pacientes Registados ]")
     linha()
     if not pacientes:

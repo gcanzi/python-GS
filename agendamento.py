@@ -233,7 +233,6 @@ def reagendar_consulta(agendamentos: list, cpf: str) -> None:
     print(f"  [✓] Consulta reagendada para {novo_horario}.")
     pausar()
 
-
 def gerir_consultas(agendamentos: list, paciente: dict) -> None:
     cpf = paciente["cpf"]
 
