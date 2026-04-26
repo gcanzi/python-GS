@@ -5,7 +5,7 @@
 import os
 
 
-def limpar_ecra() -> None:
+def limpar_tela() -> None:
     # Limpa o terminal dependendo do sistema operativo
     os.system("cls" if os.name == "nt" else "clear")
 
@@ -17,7 +17,7 @@ def cabecalho(titulo: str) -> None:
     print("=" * 45)
 
 
-def linha_separadora() -> None:
+def linha() -> None:
     print("-" * 45)
 
 
@@ -34,11 +34,11 @@ def pedir_escolha_lista(lista: list, titulo: str) -> int:
     # Mostra uma lista numerada e retorna o índice escolhido
     # Retorna -1 se o utilizador escolher voltar
     print(f"\n  {titulo}")
-    linha_separadora()
+    linha()
     for i, item in enumerate(lista):
         print(f"  {i + 1}. {item}")
     print(f"  {len(lista) + 1}. Voltar")
-    linha_separadora()
+    linha()
 
     opcoes_validas = [str(i + 1) for i in range(len(lista) + 1)]
 

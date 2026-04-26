@@ -3,7 +3,7 @@
 # e consulta de status das consultas.
 
 from utilidades import (
-    cabecalho, linha_separadora, pausar,
+    cabecalho, linha, pausar,
     pedir_escolha_lista, confirmar_acao, pedir_opcao_menu
 )
 
@@ -121,7 +121,7 @@ def agendar_consulta(agendamentos: list, paciente: dict) -> None:
     print(f"  Local    : {localizacao}")
     print(f"  Tipo     : {tipo}")
     print(f"  Horário  : {horario}")
-    linha_separadora()
+    linha()
 
     if not confirmar_acao("Confirmar agendamento?"):
         print("  [!] Agendamento cancelado.")
@@ -155,10 +155,10 @@ def _escolher_consulta_paciente(agendamentos: list, cpf: str, apenas_ativos: boo
         return None
 
     print("\n  Suas consultas:")
-    linha_separadora()
+    linha()
     for i, c in enumerate(consultas):
         print(f"  {i + 1}. ID #{c['id']} | {c['medico']} | {c['horario']} | {c['status'].upper()}")
-    linha_separadora()
+    linha()
 
     opcoes = [str(i + 1) for i in range(len(consultas))]
     while True:
@@ -180,7 +180,7 @@ def cancelar_consulta(agendamentos: list, cpf: str) -> None:
 
     print()
     _exibir_consulta(consulta)
-    linha_separadora()
+    linha()
 
     if not confirmar_acao("Cancelar esta consulta?"):
         print("  [!] Operação cancelada.")
@@ -209,9 +209,9 @@ def ver_status(agendamentos: list, cpf: str) -> None:
 
     print()
     for c in consultas:
-        linha_separadora()
+        linha()
         _exibir_consulta(c)
-    linha_separadora()
+    linha()
     pausar()
 
 
@@ -225,7 +225,7 @@ def reagendar_consulta(agendamentos: list, cpf: str) -> None:
 
     print()
     _exibir_consulta(consulta)
-    linha_separadora()
+    linha()
 
     # Mostra horários livres para o mesmo médico (exceto o atual)
     medico = consulta["medico"]

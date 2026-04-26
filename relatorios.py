@@ -2,7 +2,7 @@
 # Processa e exibe estatísticas sobre agendamentos e pacientes.
 # Toda a lógica usa apenas iterações em listas e dicionários.
 
-from utilidades import cabecalho, linha_separadora, pausar
+from utilidades import cabecalho, linha, pausar
 from agendamento import TIPOS, MEDICOS
 
 
@@ -56,7 +56,7 @@ def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
     cancelados = total - ativos
 
     print("  [ Agendamentos ]")
-    linha_separadora()
+    linha()
     print(f"  Total    : {total}")
     print(f"  Ativos   : {ativos}")
     print(f"  Cancelados: {cancelados}")
@@ -64,7 +64,7 @@ def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
 
     # 2. Médico mais escolhido
     print("  [ Médico Mais Escolhido ]")
-    linha_separadora()
+    linha()
     medico, votos = _medico_mais_escolhido(agendamentos)
     if votos == 0:
         print("  Nenhum agendamento ativo registado.")
@@ -74,7 +74,7 @@ def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
 
     # 3. Consultas agrupadas por tipo
     print("  [ Consultas por Tipo (ativas) ]")
-    linha_separadora()
+    linha()
     grupos = _agrupar_por_tipo(agendamentos)
     for tipo, quantidade in grupos.items():
         print(f"  {tipo:<18}: {quantidade}")
@@ -82,12 +82,12 @@ def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
 
     # 4. Listagem de pacientes registados
     print("  [ Pacientes Registados ]")
-    linha_separadora()
+    linha()
     if not pacientes:
         print("  Nenhum paciente registado.")
     else:
         for p in pacientes:
             print(f"  {p['nome']} | Idade: {p['idade']} | CPF: {p['cpf']}")
 
-    linha_separadora()
+    linha()
     pausar()

@@ -2,7 +2,7 @@
 # Responsável pelo registo do paciente, validação de CPF
 # e acesso aos dados do paciente em sessão.
 
-from utilidades import cabecalho, linha_separadora, pausar
+from utilidades import cabecalho, linha, pausar
 
 
 def validar_cpf(cpf: str) -> bool:
@@ -55,11 +55,11 @@ def registar_paciente() -> dict:
         "cpf": cpf
     }
 
-    linha_separadora()
+    linha()
     print(f"  Nome  : {paciente['nome']}")
     print(f"  Idade : {paciente['idade']}")
     print(f"  CPF   : {paciente['cpf']}")
-    linha_separadora()
+    linha()
     print("  [✓] Paciente registado com sucesso!")
     pausar()
 
