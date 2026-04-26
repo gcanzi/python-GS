@@ -40,7 +40,7 @@ def pedir_cpf() -> str:
         print("  [!] CPF inválido. Use exatamente 11 dígitos numéricos.")
 
 
-def registar_paciente() -> dict:
+def registrar_paciente() -> dict:
     # Recolhe os dados do paciente e retorna o dicionário preenchido
     cabecalho("Registo de Paciente")
     print()
