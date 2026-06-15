@@ -59,73 +59,77 @@ def exibir_consulta(agendamento: dict) -> None:
     print(f"  Status   : {agendamento['status'].upper()}")
 
 def agendar_consulta(agendamentos: list, paciente: dict) -> None:
-    cabecalho("Agendar Consulta")
+    try:
+        cabecalho("Agendar Consulta")
 
-    cpf = paciente["cpf"]
+        cpf = paciente["cpf"]
 
-    if contar_ativos(agendamentos, cpf) >= LIMITE_AGENDAMENTOS:
-        print(f"\n  [!] Limite de {LIMITE_AGENDAMENTOS} agendamentos ativos atingido.")
-        print("  Cancele uma consulta antes de agendar outra.")
+        if contar_ativos(agendamentos, cpf) >= LIMITE_AGENDAMENTOS:
+            print(f"\n  [!] Limite de {LIMITE_AGENDAMENTOS} agendamentos ativos atingido.")
+            print("  Cancele uma consulta antes de agendar outra.")
+            pausar()
+            return
+
+        opcao_medico = pedir_escolha_lista(MEDICOS, "Escolha o Médico:")
+        if opcao_medico == -1:
+            return
+        medico = MEDICOS[opcao_medico]
+
+        opcao_local = pedir_escolha_lista(LOCALIZACOES, "Escolha a Localização:")
+        if opcao_local == -1:
+            return
+        localizacao = LOCALIZACOES[opcao_local]
+
+        opcao_tipo = pedir_escolha_lista(TIPOS, "Escolha o Tipo de Consulta:")
+        if opcao_tipo == -1:
+            return
+        tipo = TIPOS[opcao_tipo]
+
+        horarios_livres = []
+        for h in HORARIOS:
+            if not horario_ocupado(agendamentos, medico, h):
+                horarios_livres.append(h)
+
+        if not horarios_livres:
+            print(f"\n  [!] {medico} não tem horários disponíveis.")
+            pausar()
+            return
+
+        opcao_horario = pedir_escolha_lista(horarios_livres, "Escolha o Horário:")
+        if opcao_horario == -1:
+            return
+        horario = horarios_livres[opcao_horario]
+
+        print()
+        cabecalho("Resumo do Agendamento")
+        print(f"  Paciente : {paciente['nome']}")
+        print(f"  Médico   : {medico}")
+        print(f"  Local    : {localizacao}")
+        print(f"  Tipo     : {tipo}")
+        print(f"  Horário  : {horario}")
+        linha()
+
+        if not confirmar_acao("Confirmar agendamento?"):
+            print("  [!] Agendamento cancelado.")
+            pausar()
+            return
+
+        novo = {
+            "id": gerar_id(agendamentos),
+            "cpf": cpf,
+            "medico": medico,
+            "localizacao": localizacao,
+            "tipo": tipo,
+            "horario": horario,
+            "status": "ativo"
+        }
+        agendamentos.append(novo)
+
+        print(f"\n  [✓] Consulta agendada com ID #{novo['id']}!")
         pausar()
-        return
-
-    opcao_medico = pedir_escolha_lista(MEDICOS, "Escolha o Médico:")
-    if opcao_medico == -1:
-        return
-    medico = MEDICOS[opcao_medico]
-
-    opcao_local = pedir_escolha_lista(LOCALIZACOES, "Escolha a Localização:")
-    if opcao_local == -1:
-        return
-    localizacao = LOCALIZACOES[opcao_local]
-
-    opcao_tipo = pedir_escolha_lista(TIPOS, "Escolha o Tipo de Consulta:")
-    if opcao_tipo == -1:
-        return
-    tipo = TIPOS[opcao_tipo]
-
-    horarios_livres = []
-    for h in HORARIOS:
-        if not horario_ocupado(agendamentos, medico, h):
-            horarios_livres.append(h)
-
-    if not horarios_livres:
-        print(f"\n  [!] {medico} não tem horários disponíveis.")
+    except Exception as e:
+        print(f"\n  [!] Ocorreu um erro inesperado ao agendar a consulta: {e}")
         pausar()
-        return
-
-    opcao_horario = pedir_escolha_lista(horarios_livres, "Escolha o Horário:")
-    if opcao_horario == -1:
-        return
-    horario = horarios_livres[opcao_horario]
-
-    print()
-    cabecalho("Resumo do Agendamento")
-    print(f"  Paciente : {paciente['nome']}")
-    print(f"  Médico   : {medico}")
-    print(f"  Local    : {localizacao}")
-    print(f"  Tipo     : {tipo}")
-    print(f"  Horário  : {horario}")
-    linha()
-
-    if not confirmar_acao("Confirmar agendamento?"):
-        print("  [!] Agendamento cancelado.")
-        pausar()
-        return
-
-    novo = {
-        "id": gerar_id(agendamentos),
-        "cpf": cpf,
-        "medico": medico,
-        "localizacao": localizacao,
-        "tipo": tipo,
-        "horario": horario,
-        "status": "ativo"
-    }
-    agendamentos.append(novo)
-
-    print(f"\n  [✓] Consulta agendada com ID #{novo['id']}!")
-    pausar()
 
 def escolher_consulta_paciente(agendamentos: list, cpf: str, apenas_ativos: bool = False) -> dict:
     consultas = listar_consultas_paciente(agendamentos, cpf, apenas_ativos)
@@ -144,113 +148,135 @@ def escolher_consulta_paciente(agendamentos: list, cpf: str, apenas_ativos: bool
 
     opcoes = [str(i + 1) for i in range(len(consultas))]
     while True:
-        escolha = input("  Escolha o número da consulta (ou 0 para voltar): ").strip()
-        if escolha == "0":
-            return None
-        if escolha in opcoes:
-            return consultas[int(escolha) - 1]
-        print("  [!] Opção inválida.")
+        try:
+            escolha = input("  Escolha o número da consulta (ou 0 para voltar): ").strip()
+            if escolha == "0":
+                return None
+            if escolha in opcoes:
+                return consultas[int(escolha) - 1]
+            print("  [!] Opção inválida.")
+        except ValueError:
+            print("  [!] Entrada inválida. Digite um número correspondente à consulta.")
+        except Exception as e:
+            print(f"  [!] Erro inesperado: {e}")
 
 def cancelar_consulta(agendamentos: list, cpf: str) -> None:
-    cabecalho("Cancelar Consulta")
+    try:
+        cabecalho("Cancelar Consulta")
 
-    consulta = escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
-    if not consulta:
-        return
+        consulta = escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
+        if not consulta:
+            return
 
-    print()
-    exibir_consulta(consulta)
-    linha()
+        print()
+        exibir_consulta(consulta)
+        linha()
 
-    if not confirmar_acao("Cancelar esta consulta?"):
-        print("  [!] Operação cancelada.")
+        if not confirmar_acao("Cancelar esta consulta?"):
+            print("  [!] Operação cancelada.")
+            pausar()
+            return
+
+        for a in agendamentos:
+            if a["id"] == consulta["id"]:
+                a["status"] = "cancelado"
+                break
+
+        print("  [✓] Consulta cancelada com sucesso.")
         pausar()
-        return
-
-    for a in agendamentos:
-        if a["id"] == consulta["id"]:
-            a["status"] = "cancelado"
-            break
-
-    print("  [✓] Consulta cancelada com sucesso.")
-    pausar()
+    except Exception as e:
+        print(f"\n  [!] Ocorreu um erro inesperado ao cancelar a consulta: {e}")
+        pausar()
 
 def ver_status(agendamentos: list, cpf: str) -> None:
-    cabecalho("Status das Consultas")
+    try:
+        cabecalho("Status das Consultas")
 
-    consultas = listar_consultas_paciente(agendamentos, cpf)
-    if not consultas:
-        print("\n  [!] Nenhuma consulta encontrada.")
-        pausar()
-        return
+        consultas = listar_consultas_paciente(agendamentos, cpf)
+        if not consultas:
+            print("\n  [!] Nenhuma consulta encontrada.")
+            pausar()
+            return
 
-    print()
-    for c in consultas:
+        print()
+        for c in consultas:
+            linha()
+            exibir_consulta(c)
         linha()
-        exibir_consulta(c)
-    linha()
-    pausar()
+        pausar()
+    except Exception as e:
+        print(f"\n  [!] Ocorreu um erro inesperado ao exibir o status: {e}")
+        pausar()
 
 def reagendar_consulta(agendamentos: list, cpf: str) -> None:
-    cabecalho("Reagendar Consulta")
+    try:
+        cabecalho("Reagendar Consulta")
 
-    consulta = escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
-    if not consulta:
-        return
+        consulta = escolher_consulta_paciente(agendamentos, cpf, apenas_ativos=True)
+        if not consulta:
+            return
 
-    print()
-    exibir_consulta(consulta)
-    linha()
+        print()
+        exibir_consulta(consulta)
+        linha()
 
-    medico = consulta["medico"]
-    horarios_livres = []
-    for h in HORARIOS:
-        if h == consulta["horario"]:
-            continue
-        if not horario_ocupado(agendamentos, medico, h):
-            horarios_livres.append(h)
+        medico = consulta["medico"]
+        horarios_livres = []
+        for h in HORARIOS:
+            if h == consulta["horario"]:
+                continue
+            if not horario_ocupado(agendamentos, medico, h):
+                horarios_livres.append(h)
 
-    if not horarios_livres:
-        print(f"\n  [!] Não há outros horários disponíveis para {medico}.")
+        if not horarios_livres:
+            print(f"\n  [!] Não há outros horários disponíveis para {medico}.")
+            pausar()
+            return
+
+        opcao_horario = pedir_escolha_lista(horarios_livres, "Escolha o novo horário:")
+        if opcao_horario == -1:
+            return
+        novo_horario = horarios_livres[opcao_horario]
+
+        if not confirmar_acao(f"Reagendar para {novo_horario}?"):
+            print("  [!] Operação cancelada.")
+            pausar()
+            return
+
+        for a in agendamentos:
+            if a["id"] == consulta["id"]:
+                a["horario"] = novo_horario
+                break
+
+        print(f"  [✓] Consulta reagendada para {novo_horario}.")
         pausar()
-        return
-
-    opcao_horario = pedir_escolha_lista(horarios_livres, "Escolha o novo horário:")
-    if opcao_horario == -1:
-        return
-    novo_horario = horarios_livres[opcao_horario]
-
-    if not confirmar_acao(f"Reagendar para {novo_horario}?"):
-        print("  [!] Operação cancelada.")
+    except Exception as e:
+        print(f"\n  [!] Ocorreu um erro inesperado ao reagendar a consulta: {e}")
         pausar()
-        return
-
-    for a in agendamentos:
-        if a["id"] == consulta["id"]:
-            a["horario"] = novo_horario
-            break
-
-    print(f"  [✓] Consulta reagendada para {novo_horario}.")
-    pausar()
 
 def gerir_consultas(agendamentos: list, paciente: dict) -> None:
     cpf = paciente["cpf"]
 
     while True:
-        cabecalho("Gerir Consultas")
-        print()
-        print("  1. Cancelar Consulta")
-        print("  2. Ver Status")
-        print("  3. Reagendar Consulta")
-        print("  4. Voltar ao Menu Principal")
+        try:
+            cabecalho("Gerir Consultas")
+            print()
+            print("  1. Cancelar Consulta")
+            print("  2. Ver Status")
+            print("  3. Reagendar Consulta")
+            print("  4. Voltar ao Menu Principal")
 
-        opcao = pedir_opcao_menu(["1", "2", "3", "4"])
+            opcao = pedir_opcao_menu(["1", "2", "3", "4"])
 
-        if opcao == "1":
-            cancelar_consulta(agendamentos, cpf)
-        elif opcao == "2":
-            ver_status(agendamentos, cpf)
-        elif opcao == "3":
-            reagendar_consulta(agendamentos, cpf)
-        elif opcao == "4":
+            if opcao == "1":
+                cancelar_consulta(agendamentos, cpf)
+            elif opcao == "2":
+                ver_status(agendamentos, cpf)
+            elif opcao == "3":
+                reagendar_consulta(agendamentos, cpf)
+            elif opcao == "4":
+                break
+        except Exception as e:
+            print(f"\n  [!] Ocorreu um erro no menu de gestão: {e}")
+            pausar()
             break
