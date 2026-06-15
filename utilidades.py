@@ -8,9 +8,11 @@
 # - Seleção de opções em listas numeradas
 # - Confirmação de ações (S/N)
 # - Pausa da execução para leitura no terminal
+# - Persistência de dados em arquivos JSON
 """
 
 import os
+import json
 
 def limpar_tela() -> None:
     os.system("cls" if os.name == "nt" else "clear")
@@ -61,3 +63,26 @@ def confirmar_acao(mensagem: str) -> bool:
 def pausar() -> None:
     input("\n  Pressione ENTER para continuar...")
     limpar_tela()
+
+def carregar_dados(nome_arquivo: str) -> list:
+    """Carrega dados de um arquivo JSON. Retorna uma lista vazia se o arquivo não existir."""
+    if not os.path.exists(nome_arquivo):
+        return []
+    
+    try:
+        with open(nome_arquivo, 'r', encoding='utf-8') as arquivo:
+            return json.load(arquivo)
+    except json.JSONDecodeError:
+        print(f"  [!] Erro ao decodificar o arquivo {nome_arquivo}. Retornando lista vazia.")
+        return []
+    except Exception as e:
+        print(f"  [!] Erro inesperado ao ler {nome_arquivo}: {e}")
+        return []
+
+def salvar_dados(dados: list, nome_arquivo: str) -> None:
+    """Salva a lista de dicionários em um arquivo JSON."""
+    try:
+        with open(nome_arquivo, 'w', encoding='utf-8') as arquivo:
+            json.dump(dados, arquivo, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"  [!] Erro ao salvar os dados em {nome_arquivo}: {e}")
