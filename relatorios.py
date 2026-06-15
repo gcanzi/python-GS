@@ -6,6 +6,7 @@ Funcionalidades:
     - Identificação do médico com maior número de agendamentos.
     - Agrupamento e contagem de consultas por especialidade/tipo.
     - Listagem formatada de todos os pacientes cadastrados no sistema.
+    - Tratamento de erros para leitura segura dos dados armazenados.
     """
 
 from utilidades import cabecalho, linha, pausar
@@ -20,7 +21,7 @@ def medico_mais_escolhido(agendamentos: list) -> tuple:
         contagem[medico] = 0
 
     for a in agendamentos:
-        if a["status"] == "ativo":
+        if a.get("status") == "ativo":
             contagem[a["medico"]] = contagem.get(a["medico"], 0) + 1
 
     mais_escolhido = None
@@ -38,49 +39,57 @@ def agrupar_por_tipo(agendamentos: list) -> dict:
         grupos[tipo] = 0
 
     for a in agendamentos:
-        if a["status"] == "ativo":
+        if a.get("status") == "ativo":
             grupos[a["tipo"]] = grupos.get(a["tipo"], 0) + 1
 
     return grupos
 
 def exibir_relatorios(agendamentos: list, pacientes: list) -> None:
-    cabecalho("Relatórios e Informações")
-    print()
+    try:
+        cabecalho("Relatórios e Informações")
+        print()
 
-    total = total_agendamentos(agendamentos)
-    ativos = sum(1 for a in agendamentos if a["status"] == "ativo")
-    cancelados = total - ativos
+        total = total_agendamentos(agendamentos)
+        ativos = sum(1 for a in agendamentos if a.get("status") == "ativo")
+        cancelados = total - ativos
 
-    print("  [ Agendamentos ]")
-    linha()
-    print(f"  Total    : {total}")
-    print(f"  Ativos   : {ativos}")
-    print(f"  Cancelados: {cancelados}")
-    print()
+        print("  [ Agendamentos ]")
+        linha()
+        print(f"  Total    : {total}")
+        print(f"  Ativos   : {ativos}")
+        print(f"  Cancelados: {cancelados}")
+        print()
 
-    print("  [ Médico Mais Escolhido ]")
-    linha()
-    medico, votos = medico_mais_escolhido(agendamentos)
-    if votos == 0:
-        print("  Nenhum agendamento ativo registado.")
-    else:
-        print(f"  {medico} ({votos} consulta(s) ativa(s))")
-    print()
+        print("  [ Médico Mais Escolhido ]")
+        linha()
+        medico, votos = medico_mais_escolhido(agendamentos)
+        if votos == 0:
+            print("  Nenhum agendamento ativo registado.")
+        else:
+            print(f"  {medico} ({votos} consulta(s) ativa(s))")
+        print()
 
-    print("  [ Consultas por Tipo (ativas) ]")
-    linha()
-    grupos = agrupar_por_tipo(agendamentos)
-    for tipo, quantidade in grupos.items():
-        print(f"  {tipo:<18}: {quantidade}")
-    print()
+        print("  [ Consultas por Tipo (ativas) ]")
+        linha()
+        grupos = agrupar_por_tipo(agendamentos)
+        for tipo, quantidade in grupos.items():
+            print(f"  {tipo:<18}: {quantidade}")
+        print()
 
-    print("  [ Pacientes Registados ]")
-    linha()
-    if not pacientes:
-        print("  Nenhum paciente registado.")
-    else:
-        for p in pacientes:
-            print(f"  {p['nome']} | Idade: {p['idade']} | CPF: {p['cpf']}")
+        print("  [ Pacientes Registados ]")
+        linha()
+        if not pacientes:
+            print("  Nenhum paciente registado.")
+        else:
+            for p in pacientes:
+                print(f"  {p.get('nome', 'N/A')} | Idade: {p.get('idade', 'N/A')} | CPF: {p.get('cpf', 'N/A')}")
 
-    linha()
-    pausar()
+        linha()
+        pausar()
+    
+    except KeyError as e:
+        print(f"\n  [!] Erro de integridade nos dados (chave não encontrada): {e}")
+        pausar()
+    except Exception as e:
+        print(f"\n  [!] Ocorreu um erro inesperado ao gerar os relatórios: {e}")
+        pausar()
