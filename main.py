@@ -7,14 +7,17 @@ Este arquivo funciona como ponto de entrada da aplicação, sendo responsável p
 - Coordenar a navegação entre os diferentes módulos do sistema
   (registro de pacientes, agendamento, gestão de consultas e relatórios).
 
-Também mantém os dados em memória durante a execução, incluindo
-o paciente atual da sessão e a lista de agendamentos.
+Modificado para carregar e salvar os dados em arquivos JSON de forma persistente.
 """
 
-from utilidades import limpar_tela, cabecalho, linha, pedir_opcao_menu, pausar
+from utilidades import limpar_tela, cabecalho, linha, pedir_opcao_menu, pausar, carregar_dados, salvar_dados
 from paciente   import registrar_paciente
 from agendamento import agendar_consulta, gerir_consultas
 from relatorios  import exibir_relatorios
+
+# Definição dos nomes dos arquivos para persistência
+ARQUIVO_PACIENTES = "pacientes.json"
+ARQUIVO_AGENDAMENTOS = "agendamentos.json"
 
 def exibir_menu(paciente_atual: dict) -> None:
     cabecalho("Menu Principal")
@@ -41,9 +44,9 @@ def opcoes_disponiveis(paciente_atual: dict) -> list:
     return ["1", "2", "3", "4", "5"]
 
 def main() -> None:
-
-    agendamentos = []
-    pacientes = []
+    # Carrega os dados armazenados nos arquivos JSON no início da execução
+    agendamentos = carregar_dados(ARQUIVO_AGENDAMENTOS)
+    pacientes = carregar_dados(ARQUIVO_PACIENTES)
 
     paciente_atual = None
 
@@ -66,17 +69,24 @@ def main() -> None:
             else:
                 limpar_tela()
                 paciente_atual = registrar_paciente()
-                pacientes.append(paciente_atual)
+                if paciente_atual:
+                    pacientes.append(paciente_atual)
+                    # Salva a lista de pacientes atualizada no arquivo físico
+                    salvar_dados(pacientes, ARQUIVO_PACIENTES)
 
         # 2 - Agendamento
         elif opcao == "2":
             limpar_tela()
             agendar_consulta(agendamentos, paciente_atual)
+            # Salva a lista de agendamentos após um novo registro bem-sucedido
+            salvar_dados(agendamentos, ARQUIVO_AGENDAMENTOS)
 
         # 3 - Gerir Consultas
         elif opcao == "3":
             limpar_tela()
             gerir_consultas(agendamentos, paciente_atual)
+            # Salva as alterações de status (cancelamento ou reagendamento) feitas no submódulo
+            salvar_dados(agendamentos, ARQUIVO_AGENDAMENTOS)
 
         # 4 - Relatórios
         elif opcao == "4":
